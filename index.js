@@ -1,5 +1,5 @@
 const express = require('express');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 require('dotenv').config()
 const cors = require('cors');
@@ -49,6 +49,44 @@ async function run() {
         }
         const result = await userCollection.insertOne(userInfo)
         res.send(result);
+      })
+
+      app.get('/users', async (req, res) => {
+        let query = {};
+        if (req.query?.email){
+          query = { email: req.query.email }
+        }
+        const result = await userCollection.find(query).toArray();
+        res.send(result);
+      })
+
+      app.get('/users/:id', async (req, res) => {
+        const id = req.params.id;
+        const query = {_id: new ObjectId(id)}
+        const result = await userCollection.findOne(query)
+        res.send(result);
+      })
+
+      app.put('/users/:id', async (req, res) => {
+        const id = req.params.id;
+        const filter = {_id : new ObjectId(id)}
+        const options = {upsert: true}
+        const updatedData = req.body
+        const UserData = {
+          $set: {
+            email: updatedData.email,
+            name: updatedData.name,
+            avater: updatedData.avater,
+            bloodGroup: updatedData.bloodGroup,
+            district: updatedData.district,
+            upazila: updatedData.upazila,
+            status: updatedData.status,
+            role: updatedData.role
+             
+          }
+        }
+        const result = await userCollection.updateOne(filter, UserData, options)
+        res.send(result)
       })
 
       app.get('/users', async (req, res) => {
