@@ -30,6 +30,7 @@ async function run() {
     const districtsCollection = client.db("bloodDb").collection("districts");
     const upazilasCollection = client.db("bloodDb").collection("upazilas");
     const userCollection = client.db("bloodDb").collection("users");
+    const donationCollection = client.db("bloodDb").collection("donations");
 
     app.get('/districts', async (req, res) => {
         const result = await districtsCollection.find().toArray();
@@ -38,6 +39,12 @@ async function run() {
     app.get('/upazilas', async (req, res) => {
         const result = await upazilasCollection.find().toArray();
         res.send(result); 
+      })
+
+      app.post('/donations', async(req, res)=>{
+        const newDonation = req.body;
+        const result = await donationCollection.insertOne(newDonation)
+        res.send(result)
       })
 
       app.post('/user', async (req, res) => {
@@ -148,6 +155,11 @@ async function run() {
 
       app.get('/users', async (req, res) => {
         const result = await userCollection.find().toArray();
+        res.send(result); 
+      })
+
+      app.get('/donations', async (req, res) => {
+        const result = await donationCollection.find().toArray();
         res.send(result); 
       })
       
