@@ -47,6 +47,41 @@ async function run() {
         res.send(result)
       })
 
+      app.get('/donations/:id', async (req, res) => {
+        const id = req.params.id;
+        const query = {_id: new ObjectId(id)}
+        const result = await donationCollection.findOne(query)
+        res.send(result);
+      })
+
+      app.put('/donations/:id', async (req, res) => {
+        const id = req.params.id;
+        const filter = {_id: new ObjectId(id)}
+        const updatedData = req.body
+        const options = {upsert: true}
+        const UserData = {
+          $set: {
+            donorName: updatedData.donorName,
+            donorEmail: updatedData.donorEmail,
+            donationStatus: updatedData.donationStatus,
+            requesterName: updatedData.requesterName,
+            requesterEmail: updatedData.requesterEmail,
+            recipientName: updatedData.recipientName,
+            fullAddress: updatedData.fullAddress,
+            district: updatedData.district,
+            upazila: updatedData.upazila,
+            hospitalName: updatedData.hospitalName,
+            donationDate: updatedData.donationDate,
+            donationTime: updatedData.donationTime,
+            bloodGroup: updatedData.bloodGroup,
+            requestMessage: updatedData.requestMessage
+          }
+        }
+        const result = await donationCollection.updateOne(filter, UserData, options)
+        res.send(result)
+        console.log(updatedData, id);
+      })
+
       app.post('/user', async (req, res) => {
         const userInfo = req.body;
         const query = {email: userInfo.email}
@@ -80,17 +115,8 @@ async function run() {
         res.send(result);
       })
 
-      app.patch('/allUsers/:id', async (req, res) => {
-        const id = req.params.id;
-        const filter = {_id: new ObjectId(id)}
-        const updatedDoc = {
-          $set: {
-            status: 'active',
-          }
-        }
-        const result = await userCollection.updateOne(filter, updatedDoc)
-        res.send(result)
-      })
+
+
 
       app.get('/makeAdmin/:id', async (req, res) => {
         const id = req.params.id;
