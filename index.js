@@ -66,6 +66,43 @@ async function run() {
         const result = await userCollection.findOne(query)
         res.send(result);
       })
+      app.get('/allUsers/:id', async (req, res) => {
+        const id = req.params.id;
+        const query = {_id: new ObjectId(id)}
+        const result = await userCollection.findOne(query)
+        res.send(result);
+      })
+
+      app.patch('/allUsers/:id', async (req, res) => {
+        const id = req.params.id;
+        const filter = {_id: new ObjectId(id)}
+        const updatedDoc = {
+          $set: {
+            status: 'active',
+          }
+        }
+        const result = await userCollection.updateOne(filter, updatedDoc)
+        res.send(result)
+      })
+
+      app.get('/makeAdmin/:id', async (req, res) => {
+        const id = req.params.id;
+        const query = {_id: new ObjectId(id)}
+        const result = await userCollection.findOne(query)
+        res.send(result);
+      })
+
+      app.patch('/makeAdmin/:id', async (req, res) => {
+        const id = req.params.id;
+        const filter = {_id: new ObjectId(id)}
+        const updatedDoc = {
+          $set: {
+            role: 'admin',
+          }
+        }
+        const result = await userCollection.updateOne(filter, updatedDoc)
+        res.send(result)
+      })
 
       app.put('/users/:id', async (req, res) => {
         const id = req.params.id;
@@ -92,6 +129,19 @@ async function run() {
       app.get('/users', async (req, res) => {
         const result = await userCollection.find().toArray();
         res.send(result); 
+      })
+      
+      
+      app.patch('/users/:id', async (req, res) => {
+        const id = req.params.id;
+        const filter = {_id: new ObjectId(id)}
+        const updatedDoc = {
+          $set: {
+            status:'blocked',
+          }
+        }
+        const result = await userCollection.updateOne(filter, updatedDoc)
+        res.send(result)
       })
 
     // Send a ping to confirm a successful connection
