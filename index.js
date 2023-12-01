@@ -201,6 +201,18 @@ async function run() {
         const result = await userCollection.updateOne(filter, updatedDoc)
         res.send(result)
       })
+
+      app.patch('/donations/:id', async (req, res) => {
+        const id = req.params.id;
+        const filter = {_id: new ObjectId(id)}
+        const updatedDoc = {
+          $set: {
+            donationStatus:'cancelled',
+          }
+        }
+        const result = await donationCollection.updateOne(filter, updatedDoc)
+        res.send(result)
+      })
       
 
       app.patch('/allUsers/:id', async (req, res) => {
