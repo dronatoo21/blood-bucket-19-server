@@ -115,9 +115,6 @@ async function run() {
         res.send(result);
       })
 
-
-
-
       app.get('/makeAdmin/:id', async (req, res) => {
         const id = req.params.id;
         const query = {_id: new ObjectId(id)}
@@ -136,7 +133,6 @@ async function run() {
         const result = await userCollection.updateOne(filter, updatedDoc)
         res.send(result)
       })
-
 
       app.get('/makeVol/:id', async (req, res) => {
         const id = req.params.id;
@@ -185,7 +181,11 @@ async function run() {
       })
 
       app.get('/donations', async (req, res) => {
-        const result = await donationCollection.find().toArray();
+        let query = {};
+        if (req.query?.requesterEmail){
+          query = { requesterEmail: req.query?.requesterEmail }
+        }
+        const result = await donationCollection.find(query).toArray();
         res.send(result); 
       })
       
@@ -196,6 +196,19 @@ async function run() {
         const updatedDoc = {
           $set: {
             status:'blocked',
+          }
+        }
+        const result = await userCollection.updateOne(filter, updatedDoc)
+        res.send(result)
+      })
+      
+
+      app.patch('/allUsers/:id', async (req, res) => {
+        const id = req.params.id;
+        const filter = {_id: new ObjectId(id)}
+        const updatedDoc = {
+          $set: {
+            status:'active',
           }
         }
         const result = await userCollection.updateOne(filter, updatedDoc)
