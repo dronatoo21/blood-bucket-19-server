@@ -53,8 +53,21 @@ async function run() {
         const result = await donationCollection.findOne(query)
         res.send(result);
       })
+      app.get('/donorC/donations/:id', async (req, res) => {
+        const id = req.params.id;
+        const query = {_id: new ObjectId(id)}
+        const result = await donationCollection.findOne(query)
+        res.send(result);
+      })
 
-      app.put('/donations/:id', async (req, res) => {
+      app.get('/myDonation/:id', async (req, res) => {
+        const id = req.params.id;
+        const query = {_id: new ObjectId(id)}
+        const result = await donationCollection.findOne(query)
+        res.send(result);
+      })
+
+      app.patch('/donorC/donations/:id', async (req, res) => {
         const id = req.params.id;
         const filter = {_id: new ObjectId(id)}
         const updatedData = req.body
@@ -63,6 +76,21 @@ async function run() {
           $set: {
             donorName: updatedData.donorName,
             donorEmail: updatedData.donorEmail,
+            donationStatus: updatedData.donationStatus,
+          }
+        }
+        const result = await donationCollection.updateOne(filter, UserData, options)
+        res.send(result)
+        console.log(updatedData, id);
+      })
+
+      app.patch('/myDonation/:id', async (req, res) => {
+        const id = req.params.id;
+        const filter = {_id: new ObjectId(id)}
+        const updatedData = req.body
+        const options = {upsert: true}
+        const UserData = {
+          $set: {
             donationStatus: updatedData.donationStatus,
             requesterName: updatedData.requesterName,
             requesterEmail: updatedData.requesterEmail,
@@ -223,6 +251,13 @@ async function run() {
           }
         }
         const result = await donationCollection.updateOne(filter, updatedDoc)
+        res.send(result)
+      })
+
+      app.delete('/MyDonations/:id', async(req, res) => {
+        const id = req.params.id;
+        const query = {_id : new ObjectId(id)}
+        const result = await donationCollection.deleteOne(query);
         res.send(result)
       })
       
