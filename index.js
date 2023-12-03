@@ -58,6 +58,13 @@ async function run() {
         res.send(result)
       })
 
+      app.get('/blogs/:id', async (req, res) => {
+        const id = req.params.id;
+        const query = {_id: new ObjectId(id)}
+        const result = await blogCollection.findOne(query)
+        res.send(result);
+      })
+
       app.get('/blogs', async (req, res) => {
         const result = await blogCollection.find().toArray();
         res.send(result); 
@@ -84,7 +91,7 @@ async function run() {
         const result = await blogCollection.updateOne(filter, updatedDoc)
         res.send(result)
       })
-      
+
       app.patch('/blog/:id', async (req, res) => {
         const id = req.params.id;
         const filter = {_id: new ObjectId(id)}
@@ -96,6 +103,21 @@ async function run() {
         res.send(result)
       })
 
+      app.put('/blogs/:id', async (req, res) => {
+        const id = req.params.id;
+        const filter = {_id : new ObjectId(id)}
+        const options = {upsert: true}
+        const updatedData = req.body
+        const blogData = {
+          $set: {
+            title: updatedData.title,
+            thumbnail: updatedData.thumbnail,
+            BlogContent: updatedData.BlogContent,
+            blogStatus: updatedData.blogStatus
+          }}
+        const result = await blogCollection.updateOne(filter, blogData, options)
+        res.send(result)
+      })
 
       // --------------------------------
       // roles --------------------------------
