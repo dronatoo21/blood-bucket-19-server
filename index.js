@@ -9,8 +9,6 @@ const port = process.env.PORT || 4000;
 app.use(cors());
 app.use(express.json());
 
-
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.tcccoqk.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -27,10 +25,18 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
 
+    // --------------------------------
+    // collections--------------------------------
+    // --------------------------------
+
     const districtsCollection = client.db("bloodDb").collection("districts");
     const upazilasCollection = client.db("bloodDb").collection("upazilas");
     const userCollection = client.db("bloodDb").collection("users");
     const donationCollection = client.db("bloodDb").collection("donations");
+
+    // --------------------------------
+    // locations--------------------------------
+    // --------------------------------
 
     app.get('/districts', async (req, res) => {
         const result = await districtsCollection.find().toArray();
@@ -40,6 +46,50 @@ async function run() {
         const result = await upazilasCollection.find().toArray();
         res.send(result); 
       })
+
+      // --------------------------------
+      // roles --------------------------------
+      // --------------------------------
+
+      app.get('/makeAdmin/:id', async (req, res) => {
+        const id = req.params.id;
+        const query = {_id: new ObjectId(id)}
+        const result = await userCollection.findOne(query)
+        res.send(result);
+      })
+
+      app.patch('/makeAdmin/:id', async (req, res) => {
+        const id = req.params.id;
+        const filter = {_id: new ObjectId(id)}
+        const updatedDoc = {
+          $set: {
+            role: 'admin',
+          }}
+        const result = await userCollection.updateOne(filter, updatedDoc)
+        res.send(result)
+      })
+
+      app.get('/makeVol/:id', async (req, res) => {
+        const id = req.params.id;
+        const query = {_id: new ObjectId(id)}
+        const result = await userCollection.findOne(query)
+        res.send(result);
+      })
+
+      app.patch('/makeVol/:id', async (req, res) => {
+        const id = req.params.id;
+        const filter = {_id: new ObjectId(id)}
+        const updatedDoc = {
+          $set: {
+            role: 'volunteer',
+          }}
+        const result = await userCollection.updateOne(filter, updatedDoc)
+        res.send(result)
+      })
+
+      // --------------------------------
+      // donations --------------------------------
+      // --------------------------------
 
       app.post('/donations', async(req, res)=>{
         const newDonation = req.body;
@@ -77,8 +127,7 @@ async function run() {
             donorName: updatedData.donorName,
             donorEmail: updatedData.donorEmail,
             donationStatus: updatedData.donationStatus,
-          }
-        }
+          }}
         const result = await donationCollection.updateOne(filter, UserData, options)
         res.send(result)
         console.log(updatedData, id);
@@ -103,12 +152,53 @@ async function run() {
             donationTime: updatedData.donationTime,
             bloodGroup: updatedData.bloodGroup,
             requestMessage: updatedData.requestMessage
-          }
-        }
+          }}
         const result = await donationCollection.updateOne(filter, UserData, options)
         res.send(result)
         console.log(updatedData, id);
       })
+
+      app.get('/donations', async (req, res) => {
+        let query = {};
+        if (req.query?.requesterEmail){
+          query = { requesterEmail: req.query?.requesterEmail }
+        }
+        const result = await donationCollection.find(query).toArray();
+        res.send(result); 
+      })
+      
+      app.patch('/donations/:id', async (req, res) => {
+        const id = req.params.id;
+        const filter = {_id: new ObjectId(id)}
+        const updatedDoc = {
+          $set: {
+            donationStatus:'cancelled',
+          }}
+        const result = await donationCollection.updateOne(filter, updatedDoc)
+        res.send(result)
+      })
+
+      app.patch('/myDonations/:id', async (req, res) => {
+        const id = req.params.id;
+        const filter = {_id: new ObjectId(id)}
+        const updatedDoc = {
+          $set: {
+            donationStatus:'done',
+          }}
+        const result = await donationCollection.updateOne(filter, updatedDoc)
+        res.send(result)
+      })
+
+      app.delete('/MyDonations/:id', async(req, res) => {
+        const id = req.params.id;
+        const query = {_id : new ObjectId(id)}
+        const result = await donationCollection.deleteOne(query);
+        res.send(result)
+      })
+
+      // --------------------------------
+      // users --------------------------------
+      // --------------------------------
 
       app.post('/user', async (req, res) => {
         const userInfo = req.body;
@@ -143,44 +233,6 @@ async function run() {
         res.send(result);
       })
 
-      app.get('/makeAdmin/:id', async (req, res) => {
-        const id = req.params.id;
-        const query = {_id: new ObjectId(id)}
-        const result = await userCollection.findOne(query)
-        res.send(result);
-      })
-
-      app.patch('/makeAdmin/:id', async (req, res) => {
-        const id = req.params.id;
-        const filter = {_id: new ObjectId(id)}
-        const updatedDoc = {
-          $set: {
-            role: 'admin',
-          }
-        }
-        const result = await userCollection.updateOne(filter, updatedDoc)
-        res.send(result)
-      })
-
-      app.get('/makeVol/:id', async (req, res) => {
-        const id = req.params.id;
-        const query = {_id: new ObjectId(id)}
-        const result = await userCollection.findOne(query)
-        res.send(result);
-      })
-
-      app.patch('/makeVol/:id', async (req, res) => {
-        const id = req.params.id;
-        const filter = {_id: new ObjectId(id)}
-        const updatedDoc = {
-          $set: {
-            role: 'volunteer',
-          }
-        }
-        const result = await userCollection.updateOne(filter, updatedDoc)
-        res.send(result)
-      })
-
       app.put('/users/:id', async (req, res) => {
         const id = req.params.id;
         const filter = {_id : new ObjectId(id)}
@@ -195,10 +247,8 @@ async function run() {
             district: updatedData.district,
             upazila: updatedData.upazila,
             status: updatedData.status,
-            role: updatedData.role
-             
-          }
-        }
+            role: updatedData.role 
+          }}
         const result = await userCollection.updateOne(filter, UserData, options)
         res.send(result)
       })
@@ -208,68 +258,24 @@ async function run() {
         res.send(result); 
       })
 
-      app.get('/donations', async (req, res) => {
-        let query = {};
-        if (req.query?.requesterEmail){
-          query = { requesterEmail: req.query?.requesterEmail }
-        }
-        const result = await donationCollection.find(query).toArray();
-        res.send(result); 
-      })
-      
-      
       app.patch('/users/:id', async (req, res) => {
         const id = req.params.id;
         const filter = {_id: new ObjectId(id)}
         const updatedDoc = {
           $set: {
             status:'blocked',
-          }
-        }
+          }}
         const result = await userCollection.updateOne(filter, updatedDoc)
         res.send(result)
       })
-
-      app.patch('/donations/:id', async (req, res) => {
-        const id = req.params.id;
-        const filter = {_id: new ObjectId(id)}
-        const updatedDoc = {
-          $set: {
-            donationStatus:'cancelled',
-          }
-        }
-        const result = await donationCollection.updateOne(filter, updatedDoc)
-        res.send(result)
-      })
-
-      app.patch('/myDonations/:id', async (req, res) => {
-        const id = req.params.id;
-        const filter = {_id: new ObjectId(id)}
-        const updatedDoc = {
-          $set: {
-            donationStatus:'done',
-          }
-        }
-        const result = await donationCollection.updateOne(filter, updatedDoc)
-        res.send(result)
-      })
-
-      app.delete('/MyDonations/:id', async(req, res) => {
-        const id = req.params.id;
-        const query = {_id : new ObjectId(id)}
-        const result = await donationCollection.deleteOne(query);
-        res.send(result)
-      })
       
-
       app.patch('/allUsers/:id', async (req, res) => {
         const id = req.params.id;
         const filter = {_id: new ObjectId(id)}
         const updatedDoc = {
           $set: {
             status:'active',
-          }
-        }
+          }}
         const result = await userCollection.updateOne(filter, updatedDoc)
         res.send(result)
       })
@@ -280,11 +286,8 @@ async function run() {
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
-  }
-}
+  }}
 run().catch(console.dir);
-
-
 
 app.get('/', (req, res) => {
     res.send('server is runing')
