@@ -33,6 +33,7 @@ async function run() {
     const upazilasCollection = client.db("bloodDb").collection("upazilas");
     const userCollection = client.db("bloodDb").collection("users");
     const donationCollection = client.db("bloodDb").collection("donations");
+    const blogCollection = client.db("bloodDb").collection("blogs");
 
     // --------------------------------
     // locations--------------------------------
@@ -46,6 +47,22 @@ async function run() {
         const result = await upazilasCollection.find().toArray();
         res.send(result); 
       })
+
+      // --------------------------------
+      // blogs --------------------------------
+      // --------------------------------
+
+      app.post('/blogs', async(req, res)=>{
+        const newBlog = req.body;
+        const result = await blogCollection.insertOne(newBlog)
+        res.send(result)
+      })
+
+      app.get('/blogs', async (req, res) => {
+        const result = await blogCollection.find().toArray();
+        res.send(result); 
+      })
+
 
       // --------------------------------
       // roles --------------------------------
